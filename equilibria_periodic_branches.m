@@ -37,12 +37,12 @@ stst.x=[4/15;7/15;4/15];
 %% Create branch of non-trivial Equilibria
 
 [eqbr,suc]=SetupStst(funcs,'contpar',ind_tau,'x',stst.x,'parameter',stst.parameter,...
-    'max_bound',[ind_tau,1],'max_step',[ind_tau,0.01]);
+    'max_bound',[ind_tau,30],'max_step',[ind_tau,0.3]);
 if ~suc
     error('equilibrium not found');
 end
 figure(1);clf
-eqbr=br_contn(funcs,eqbr,100);
+eqbr=br_contn(funcs,eqbr,150);
 xlabel('\tau');
 ylabel('a_1')
 
@@ -50,7 +50,7 @@ ylabel('a_1')
 [eqnunst,dom,triv_defect,eqbr.point]=...
     GetStability(eqbr,'funcs',funcs,'points',2:length(eqbr.point));
 
-%% Branch off at Hopf bifurcation
+%% Branch off at first Hopf bifurcation
 
 % stop script if there is no Hopf point
 if isempty(find(diff(eqnunst)==2,1,'first')) == 1
@@ -71,5 +71,64 @@ per=br_contn(funcs,per,100);
 per.parameter.max_step=[];
 per=br_contn(funcs,per,100);
 per=br_stabl(funcs,per,0,1);
+
+% Stability of periodic orbits
+[pernunst,dom,triv_defect,per.point]=...
+    GetStability(per,'exclude_trivial',true,'funcs',funcs);
+fprintf('maximum error of trivial Floquet multiplier: %g\n',max(abs(triv_defect)));
+
+%% Branch off at second Hopf bifurcation
+
+% stop script if there is no Hopf point
+if isempty(find(diff(eqnunst(10:length(eqnunst)))==2,1,'first')) == 1
+      error('eqnunst: conditions for hopf bifurcation not met');
+end
+
+% initialise branch of periodic orbits
+indhopf1=find(diff(eqnunst(10:length(eqnunst)))==2,1,'first');
+[per1,suc]=SetupPsol(funcs,eqbr,indhopf1,'contpar',ind_tau,'degree',3,'intervals',50,...
+    'print_residual_info',1);
+if ~suc
+    error('initialization of periodic orbits failed');
+end
+
+% continuation of periodic orbit in parameter
+per1.parameter.max_step=[0,0.02];
+per1=br_contn(funcs,per1,100);
+per1.parameter.max_step=[];
+per1=br_contn(funcs,per1,100);
+per1=br_stabl(funcs,per1,0,1);
+
+% Stability of periodic orbits
+[pernunst1,dom,triv_defect,per1.point]=...
+    GetStability(per1,'exclude_trivial',true,'funcs',funcs);
+fprintf('maximum error of trivial Floquet multiplier: %g\n',max(abs(triv_defect)));
+
+%% Branch off at last Hopf bifurcation
+
+% stop script if there is no Hopf point
+if isempty(find(diff(eqnunst)==2,1,'last')) == 1
+      error('eqnunst: conditions for hopf bifurcation not met');
+end
+
+% initialise branch of periodic orbits
+indhopf2=find(diff(eqnunst)==2,1,'last');
+[per2,suc]=SetupPsol(funcs,eqbr,indhopf2,'contpar',ind_tau,'degree',3,'intervals',50,...
+    'print_residual_info',1);
+if ~suc
+    error('initialization of periodic orbits failed');
+end
+
+% continuation of periodic orbit in parameter
+per2.parameter.max_step=[0,0.02];
+per2=br_contn(funcs,per2,100);
+per2.parameter.max_step=[];
+per2=br_contn(funcs,per2,100);
+per2=br_stabl(funcs,per2,0,1);
+
+% Stability of periodic orbits
+[pernunst2,dom,triv_defect,per2.point]=...
+    GetStability(per2,'exclude_trivial',true,'funcs',funcs);
+fprintf('maximum error of trivial Floquet multiplier: %g\n',max(abs(triv_defect)));
 
 save('eq_per_branches.mat');
