@@ -45,9 +45,9 @@ for i=1:length(br.point)-1
         c1=c2; 
     end
     switch c1,
-      case 0, plot(x,y,'x');
-      case 1, plot(x,y,'*');
-      case -1, plot(x,y,'d');
+      case 0, plot(x,y,'o','MarkerSize',12,'linewidth',1.2,'col',[0.33 0.38 0.44]);
+      case 1, plot(x,y,'x','MarkerSize',12,'linewidth',1.2,'col',[0.33 0.38 0.44]);
+      case -1, plot(x,y,'s','MarkerSize',12,'linewidth',1.2,'col',[0.33 0.38 0.44]);
     end
   end
 end
